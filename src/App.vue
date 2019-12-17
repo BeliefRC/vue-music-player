@@ -1,9 +1,9 @@
 <template>
   <div id="app">
-    <PageHeader></PageHeader>
-    <Tab></Tab>
+    <PageHeader />
+    <Tab />
     <keep-alive>
-      <router-view></router-view>
+      <RouterView />
     </keep-alive>
   </div>
 </template>

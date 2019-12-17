@@ -19,7 +19,16 @@ const routes = [
     path: "/singer",
     name: "singer",
     component: () =>
-      import(/* webpackChunkName: "singer" */ "../views/Singer/Singer.vue")
+      import(/* webpackChunkName: "singer" */ "../views/Singer/Singer.vue"),
+    children: [
+      {
+        path: ":id",
+        component: () =>
+          import(
+            /* webpackChunkName: "singerDetail" */ "../views/SingerDetail/SingerDetail.vue"
+          )
+      }
+    ]
   },
   {
     path: "/rank",
