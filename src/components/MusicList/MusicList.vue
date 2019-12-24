@@ -1,10 +1,52 @@
 <template>
-  <div class="music-list"></div>
+  <div class="music-list">
+    <div class="back">
+      <i class="icon-back"> </i>
+    </div>
+    <h1 class="title" v-html="title" />
+    <div class="bg-image" :style="bgStyle" ref="bgImage">
+      <div class="filter"></div>
+    </div>
+    <Scroll :data="songs" class="list" ref="list">
+      <div class="song-list-wrapper">
+        <SongList :songs="songs" />
+      </div>
+    </Scroll>
+  </div>
 </template>
 
 <script type="text/ecmascript-6">
+import Scroll from 'components/Scroll/Scroll'
+import SongList from 'components/SongList/SongList'
+export default {
+  components:{
+    Scroll,
+    SongList
+  },
+  props:{
+    bgImage:{
+      type:String,
+      default:''
+    },
+    songs:{
+      type: Array,
+      default: ()=>[]
+    },
+    title:{
+      type:String,
+      default:''
+    }
 
-export default {}
+  },
+  mounted () {
+      this.$refs.list.$el.style.top=`${this.$refs.bgImage.clientHeight}px`
+  },
+  computed:{
+    bgStyle(){
+      return `background-image:url(${this.bgImage})`
+    }
+  }
+}
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">

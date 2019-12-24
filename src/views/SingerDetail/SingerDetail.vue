@@ -1,6 +1,6 @@
 <template>
   <transition name="slide">
-    <MusicList />
+    <MusicList :songs="songs" :title="title" :bg-image="bgImage" />
   </transition>
 </template>
 
@@ -49,6 +49,12 @@ export default {
     }
   },
   computed: {
+    title() {
+      return this.singer.name;
+    },
+    bgImage() {
+      return this.singer.avatar;
+    },
     ...mapGetters(["singer"])
   }
 };
