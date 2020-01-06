@@ -1,10 +1,16 @@
 <template>
   <div class="music-list">
     <div class="back">
-      <i class="icon-back"> </i>
+      <i class="icon-back" @click="back"> </i>
     </div>
     <h1 class="title" v-html="title" />
     <div class="bg-image" :style="bgStyle" ref="bgImage">
+      <div class="play-wrapper">
+        <div class="play" v-show="songs.length > 0" ref="playBtn">
+          <i class="icon-play"></i>
+          <span class="text">随机播放全部</span>
+        </div>
+      </div>
       <div class="filter" ref="filter"></div>
     </div>
     <div class="bg-layer" ref="layer"></div>
@@ -17,21 +23,31 @@
       ref="list"
     >
       <div class="song-list-wrapper">
-        <SongList :songs="songs" />
+        <SongList @select="selectItem" :songs="songs" />
+      </div>
+      <div class="loading-container" v-show="!songs.length">
+        <Loading />
       </div>
     </Scroll>
   </div>
 </template>
 
 <script>
+import { mapActions } from "vuex";
 import Scroll from "components/Scroll/Scroll";
 import SongList from "components/SongList/SongList";
+import Loading from "components/Loading/Loading";
+import { prefixStyle } from "common/js/dom";
 
 const RESERVED_HEIGHT = 40;
+const transform = prefixStyle("transform");
+const backDrop = prefixStyle("backdrop-filter");
+
 export default {
   components: {
     Scroll,
-    SongList
+    SongList,
+    Loading
   },
   data() {
     return {
@@ -55,7 +71,14 @@ export default {
   methods: {
     scroll(pos) {
       this.scrollY = pos.y;
-    }
+    },
+    back() {
+      this.$router.back();
+    },
+    selectItem(item, index) {
+      this.selectPlay({ list: this.songs, index });
+    },
+    ...mapActions(["selectPlay"])
   },
   computed: {
     bgStyle() {
@@ -79,20 +102,20 @@ export default {
       } else {
         blur = Math.min(20 * percent, 20);
       }
-      this.$refs.filter.style["backdrop-filter"] = `blur(${blur})`;
-      this.$refs.filter.style["webkitBackdrop-filter"] = `blur(${blur})`;
+      this.$refs.filter.style[backDrop] = `blur(${blur})`;
 
       if (newY < this.minTranslateY) {
         zIndex = 10;
         this.$refs.bgImage.style.paddingTop = 0;
         this.$refs.bgImage.style.height = `${RESERVED_HEIGHT}px`;
+        this.$refs.playBtn.style.display = `none`;
       } else {
         this.$refs.bgImage.style.paddingTop = "70%";
         this.$refs.bgImage.style.height = 0;
+        this.$refs.playBtn.style.display = ``;
       }
       this.$refs.bgImage.style.zIndex = zIndex;
-      this.$refs.bgImage.style["transform"] = `scale(${scale})`;
-      this.$refs.bgImage.style["webkit-transform"] = `scale(${scale})`;
+      this.$refs.bgImage.style[transform] = `scale(${scale})`;
     }
   },
   created() {

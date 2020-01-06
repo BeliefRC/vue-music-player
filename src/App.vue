@@ -5,15 +5,18 @@
     <keep-alive>
       <RouterView />
     </keep-alive>
+    <Player />
   </div>
 </template>
 <script>
 import PageHeader from "components/PageHeader/PageHeader";
 import Tab from "components/Tab/Tab";
+import Player from "components/Player/Player";
 export default {
   components: {
     PageHeader,
-    Tab
+    Tab,
+    Player
   }
 };
 </script>
