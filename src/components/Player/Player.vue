@@ -1,20 +1,93 @@
 <template>
-  <div class="player">
+  <div class="player" v-show="playlist.length > 0">
     <div class="normal-player" v-show="fullScreen">
-      player
+      <div class="background">
+        <img width="100%" height="100%" :src="currentSong.image" />
+      </div>
+      <div class="top">
+        <div class="back" @click="back">
+          <i class="icon-back" />
+        </div>
+        <h1 class="title" v-html="currentSong.name" />
+        <h2 class="subtitle" v-html="currentSong.singer" />
+      </div>
+      <div class="middle">
+        <div class="middle-l" ref="middleL">
+          <div class="cd-wrapper" ref="cdWrapper">
+            <div class="cd">
+              <img class="image" :src="currentSong.image" />
+            </div>
+          </div>
+          <div class="playing-lyric-wrapper">
+            <div class="playing-lyric"></div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom">
+        <div class="dot-wrapper">
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+        <div class="progress-wrapper">
+          <span class="time time-l"></span>
+          <div class="progress-bar-wrapper"></div>
+          <span class="time time-r"></span>
+        </div>
+        <div class="operators">
+          <div class="icon i-left">
+            <i class="icon-sequence" />
+          </div>
+          <div class="icon i-left">
+            <i class="icon-prev" />
+          </div>
+          <div class="icon i-center">
+            <i class="icon-play" />
+          </div>
+          <div class="icon i-right">
+            <i class="icon-next" />
+          </div>
+          <div class="icon i-right">
+            <i class="icon icon-not-favorite" />
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="mini-player" v-show="!fullScreen"></div>
+    <div class="mini-player" v-show="!fullScreen" @click="open">
+      <div class="icon">
+        <img width="40" height="40" :src="currentSong.image" />
+      </div>
+      <div class="text">
+        <h2 class="name" v-html="currentSong.name" />
+        <p class="desc" v-html="currentSong.singer" />
+      </div>
+      <div class="control"></div>
+      <div class="control" @click.stop="showPlaylist">
+        <i class="icon-playlist" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
+import * as types from "store/mutation-types";
 export default {
   data() {
     return {};
   },
+  methods: {
+    back() {
+      this.setFullScreen(false);
+    },
+    open() {
+      this.setFullScreen(true)
+    },
+    ...mapMutations({
+      setFullScreen: types.SET_FULL_SCREEN
+    })
+  },
   computed: {
-    ...mapGetters(["fullScreen", "playlist"])
+    ...mapGetters(["fullScreen", "playlist", "currentSong"])
   }
 };
 </script>
