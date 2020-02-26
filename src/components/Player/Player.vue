@@ -47,7 +47,7 @@
           </div>
           <div class="operators">
             <div class="icon i-left">
-              <i class="icon-sequence" />
+              <i :class="iconMode" @click="changMode" />
             </div>
             <div class="icon i-left" :class="disableCls">
               <i class="icon-prev" @click="prev" />
@@ -94,6 +94,7 @@
       @timeupdate="updateTime"
       @canplay="ready"
       @error="error"
+      @ended="end"
     ></audio>
   </div>
 </template>
@@ -105,6 +106,8 @@ import ProgressBar from "components/ProgressBar/ProgressBar";
 import ProgressCircle from "components/ProgressCircle/ProgressCircle";
 import * as types from "store/mutation-types";
 import { prefixStyle } from "common/js/dom";
+import { playMode } from "common/js/config";
+import { shuffle } from "common/js/util";
 
 const transform = prefixStyle("transform");
 export default {
@@ -162,6 +165,17 @@ export default {
     error() {
       this.songReady = true;
     },
+    end() {
+      if (this.mode === playMode.loop) {
+        this.loop();
+      } else {
+        this.next();
+      }
+    },
+    loop() {
+      this.$refs.audio.currentTime = 0;
+      this.$refs.audio.play();
+    },
     updateTime(e) {
       this.currentTime = e.target.currentTime;
     },
@@ -176,6 +190,22 @@ export default {
       if (!this.playing) {
         this.togglePlaying();
       }
+    },
+    changMode() {
+      const mode = (this.mode + 1) % 3;
+      this.setPlayMode(mode);
+      let list = null;
+      if (mode === playMode.random) {
+        list = shuffle(this.sequenceList);
+      } else {
+        list = this.sequenceList;
+      }
+      this.resetCurrentIndex(list);
+      this.setPlayList(list);
+    },
+    resetCurrentIndex(list) {
+      let index = list.findIndex(song => song.id === this.currentSong.id);
+      this.setCurrentIndex(index);
     },
     enter(el, done) {
       const { x, y, scale } = this._getPosAndScale();
@@ -237,7 +267,9 @@ export default {
     ...mapMutations({
       setFullScreen: types.SET_FULL_SCREEN,
       setPlayingState: types.SET_PLAYING_STATE,
-      setCurrentIndex: types.SET_CURRENT_INDEX
+      setCurrentIndex: types.SET_CURRENT_INDEX,
+      setPlayMode: types.SET_PLAY_MODE,
+      setPlayList: types.SET_PLAYLIST
     })
   },
   computed: {
@@ -246,6 +278,13 @@ export default {
     },
     miniPlayIcon() {
       return this.playing ? "icon-pause-mini" : "icon-play-mini";
+    },
+    iconMode() {
+      return this.mode === playMode.sequence
+        ? "icon-sequence"
+        : this.mode === playMode.loop
+        ? "icon-loop"
+        : "icon-random";
     },
     cdCls() {
       return this.playing ? "play" : "play pause";
@@ -256,16 +295,24 @@ export default {
     percent() {
       return this.currentTime / this.currentSong.duration;
     },
+
     ...mapGetters([
       "fullScreen",
       "playlist",
       "currentSong",
       "playing",
-      "currentIndex"
+      "currentIndex",
+      "mode",
+      "sequenceList"
     ])
   },
   watch: {
-    currentSong() {
+    currentSong(newSong, oldSong) {
+      console.log("1111");
+      console.log(newSong, oldSong);
+      if (newSong.id === oldSong.id) {
+        return;
+      }
       this.$nextTick(() => {
         this.$refs.audio.play();
       });
