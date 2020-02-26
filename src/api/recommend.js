@@ -16,6 +16,7 @@ export function getRecommend() {
 }
 
 export function getDiscList() {
+  // https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg
   const url = "/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg";
 
   const data = Object.assign({}, commonParams, {

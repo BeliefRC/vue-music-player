@@ -102,6 +102,7 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import animations from "create-keyframe-animation";
+import Lyric from "lyric-parser";
 import ProgressBar from "components/ProgressBar/ProgressBar";
 import ProgressCircle from "components/ProgressCircle/ProgressCircle";
 import * as types from "store/mutation-types";
@@ -115,7 +116,8 @@ export default {
     return {
       songReady: false,
       currentTime: 0,
-      radius: 32
+      radius: 32,
+      currentLyric: null
     };
   },
   methods: {
@@ -206,6 +208,12 @@ export default {
     resetCurrentIndex(list) {
       let index = list.findIndex(song => song.id === this.currentSong.id);
       this.setCurrentIndex(index);
+    },
+    getLyric() {
+      this.currentSong.getLyric().then(lyric => {
+        this.currentLyric = new Lyric(lyric);
+        console.log(this.currentLyric);
+      });
     },
     enter(el, done) {
       const { x, y, scale } = this._getPosAndScale();
@@ -308,13 +316,12 @@ export default {
   },
   watch: {
     currentSong(newSong, oldSong) {
-      console.log("1111");
-      console.log(newSong, oldSong);
       if (newSong.id === oldSong.id) {
         return;
       }
       this.$nextTick(() => {
         this.$refs.audio.play();
+        this.getLyric();
       });
     },
     playing(newPlaying) {

@@ -24,6 +24,13 @@ module.exports = {
           referer: "https://c.y.qq.com/",
           host: "c.y.qq.com"
         }
+      },
+      "/lyric/": {
+        target: "https://c.y.qq.com/",
+        headers: {
+          referer: "https://c.y.qq.com/",
+          host: "c.y.qq.com"
+        }
       }
     }
   }
