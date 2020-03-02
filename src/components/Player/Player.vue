@@ -18,7 +18,12 @@
           <h1 class="title" v-html="currentSong.name" />
           <h2 class="subtitle" v-html="currentSong.singer" />
         </div>
-        <div class="middle">
+        <div
+          class="middle"
+          @touchstart.prevent="middleTouchStart"
+          @touchmove.prevent="middleTouchMove"
+          @touchend="middleTouchEnd"
+        >
           <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
@@ -29,11 +34,33 @@
               <div class="playing-lyric"></div>
             </div>
           </div>
+          <Scroll
+            class="middle-r"
+            ref="lyricList"
+            :data="currentLyric && currentLyric.lines"
+          >
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p
+                  ref="lyricLine"
+                  class="text"
+                  :key="line.time"
+                  :class="{ current: currentLineNum === index }"
+                  v-for="(line, index) in currentLyric.lines"
+                >
+                  {{ line.txt }}
+                </p>
+              </div>
+            </div>
+          </Scroll>
         </div>
         <div class="bottom">
           <div class="dot-wrapper">
-            <span class="dot"></span>
-            <span class="dot"></span>
+            <span class="dot" :class="{ active: currentShow === 'cd' }"></span>
+            <span
+              class="dot"
+              :class="{ active: currentShow === 'lyric' }"
+            ></span>
           </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{ format(currentTime) }}</span>
@@ -105,20 +132,28 @@ import animations from "create-keyframe-animation";
 import Lyric from "lyric-parser";
 import ProgressBar from "components/ProgressBar/ProgressBar";
 import ProgressCircle from "components/ProgressCircle/ProgressCircle";
+import Scroll from "components/Scroll/Scroll";
 import * as types from "store/mutation-types";
 import { prefixStyle } from "common/js/dom";
 import { playMode } from "common/js/config";
 import { shuffle } from "common/js/util";
 
 const transform = prefixStyle("transform");
+const transitionDuration = prefixStyle("transitionDuration");
+
 export default {
   data() {
     return {
       songReady: false,
       currentTime: 0,
       radius: 32,
-      currentLyric: null
+      currentLyric: null,
+      currentLineNum: 0,
+      currentShow: "cd"
     };
+  },
+  created() {
+    this.touch = {};
   },
   methods: {
     back() {
@@ -211,9 +246,89 @@ export default {
     },
     getLyric() {
       this.currentSong.getLyric().then(lyric => {
-        this.currentLyric = new Lyric(lyric);
-        console.log(this.currentLyric);
+        this.currentLyric = new Lyric(lyric, this.handleLyric);
+        if (this.playing) {
+          this.currentLyric.play();
+        }
       });
+    },
+    handleLyric({ lineNum }) {
+      console.log("handleLyric");
+      this.currentLineNum = lineNum;
+      if (lineNum > 5) {
+        let lineEl = this.$refs.lyricLine[lineNum - 5];
+        this.$refs.lyricList.scrollToElement(lineEl, 1000);
+      } else {
+        this.$refs.lyricList.scrollTo(0, 0, 1000);
+      }
+    },
+    middleTouchStart(e) {
+      this.touch.initiated = true;
+      // 用来判断是否是一次移动
+      this.touch.moved = false;
+      const touch = e.touches[0];
+      this.touch.startX = touch.pageX;
+      this.touch.startY = touch.pageY;
+    },
+    middleTouchMove(e) {
+      if (!this.touch.initiated) {
+        return;
+      }
+      const touch = e.touches[0];
+      const deltaX = touch.pageX - this.touch.startX;
+      const deltaY = touch.pageY - this.touch.startY;
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        return;
+      }
+      if (!this.touch.moved) {
+        this.touch.moved = true;
+      }
+      const left = this.currentShow === "cd" ? 0 : -window.innerWidth;
+      const offsetWidth = Math.min(
+        0,
+        Math.max(-window.innerWidth, left + deltaX)
+      );
+      this.touch.percent = Math.abs(offsetWidth / window.innerWidth);
+      this.$refs.lyricList.$el.style[
+        transform
+      ] = `translate3d(${offsetWidth}px,0,0)`;
+      this.$refs.lyricList.$el.style[transitionDuration] = 0;
+      this.$refs.middleL.style.opacity = 1 - this.touch.percent;
+      this.$refs.middleL.style[transitionDuration] = 0;
+    },
+    middleTouchEnd() {
+      if (!this.touch.moved) {
+        return;
+      }
+      let offsetWidth;
+      let opacity;
+      if (this.currentShow === "cd") {
+        if (this.touch.percent > 0.1) {
+          offsetWidth = -window.innerWidth;
+          opacity = 0;
+          this.currentShow = "lyric";
+        } else {
+          offsetWidth = 0;
+          opacity = 1;
+        }
+      } else {
+        if (this.touch.percent < 0.9) {
+          offsetWidth = 0;
+          this.currentShow = "cd";
+          opacity = 1;
+        } else {
+          offsetWidth = -window.innerWidth;
+          opacity = 0;
+        }
+      }
+      const time = 300;
+      this.$refs.lyricList.$el.style[
+        transform
+      ] = `translate3d(${offsetWidth}px,0,0)`;
+      this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`;
+      this.$refs.middleL.style.opacity = opacity;
+      this.$refs.middleL.style[transitionDuration] = `${time}ms`;
+      this.touch.initiated = false;
     },
     enter(el, done) {
       const { x, y, scale } = this._getPosAndScale();
@@ -333,7 +448,8 @@ export default {
   },
   components: {
     ProgressBar,
-    ProgressCircle
+    ProgressCircle,
+    Scroll
   }
 };
 </script>
