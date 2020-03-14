@@ -43,12 +43,14 @@ import Scroll from "components/Scroll/Scroll";
 import SongList from "components/SongList/SongList";
 import Loading from "components/Loading/Loading";
 import { prefixStyle } from "common/js/dom";
+import { playlistMixin } from "common/js/mixin";
 
 const RESERVED_HEIGHT = 40;
 const transform = prefixStyle("transform");
 const backDrop = prefixStyle("backdrop-filter");
 
 export default {
+  mixins: [playlistMixin],
   components: {
     Scroll,
     SongList,
@@ -88,6 +90,11 @@ export default {
         list: this.songs
       });
     },
+    handlePlayList(playlist) {
+      this.$refs.list.$el.style.bottom = playlist.length > 0 ? "60px" : "";
+      this.$refs.list.refresh();
+    },
+
     ...mapActions(["selectPlay", "randomPlay"])
   },
   computed: {
