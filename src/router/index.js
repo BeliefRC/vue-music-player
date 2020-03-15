@@ -13,7 +13,14 @@ const routes = [
     component: () =>
       import(
         /* webpackChunkName: "recommend" */ "../views/Recommend/Recommend.vue"
-      )
+      ),
+    children: [
+      {
+        path: ":id",
+        component: () =>
+          import(/* webpackChunkName: "Disc" */ "../components/Disc/Disc.vue")
+      }
+    ]
   },
   {
     path: "/singer",

@@ -31,6 +31,13 @@ module.exports = {
           referer: "https://c.y.qq.com/",
           host: "c.y.qq.com"
         }
+      },
+      "/qzone/": {
+        target: "https://c.y.qq.com/",
+        headers: {
+          referer: "https://c.y.qq.com/",
+          host: "c.y.qq.com"
+        }
       }
     }
   }
